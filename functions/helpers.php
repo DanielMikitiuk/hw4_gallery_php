@@ -61,12 +61,11 @@ function getExtension($filename) {
     return $path_info['extension'];
 }
 
-function watermark($file, $watermark) {
+function watermark($file, $wtermark) {
 
-        if(empty($file) | empty($watermark)) return false;
-
-        if(getExtension($file) == "jpeg" || getExtension($file) == "jpg"){
-            $wh = getimagesize($watermark);
+        if(empty($file) | empty($wtermark)) return false;
+        /*
+         $wh = getimagesize($watermark);
             $fh = getimagesize($file);
 
             $rwatermark = imagecreatefrompng($watermark);
@@ -79,6 +78,34 @@ function watermark($file, $watermark) {
 
             imagedestroy($rwatermark);
             imagedestroy($rfile);
+
+            return true;
+         */
+
+        if(getExtension($file) == "jpeg" || getExtension($file) == "jpg"){
+            $watermark = imagecreatefrompng($wtermark);
+
+            $photo = imagecreatefromjpeg($file);
+
+            $marginSide = 15;
+            $marginBottom = 15;
+
+            $photoWidth = imagesx($photo);
+            $photoHeight = imagesy($photo);
+
+            $watermarkWidth = imagesx($watermark);
+            $watermarkHeight = imagesy($watermark);
+
+            $dstX = ($photoWidth - $watermarkWidth - $marginSide);
+
+            $dstY = ($photoHeight - $watermarkHeight - $marginBottom);
+
+
+            imagecopy($photo, $watermark, $dstX, $dstY, 0, 0, $watermarkWidth, $watermarkHeight);
+            imagejpeg($photo, $file, 100);
+
+            imagedestroy($watermark);
+            imagedestroy($photo);
 
             return true;
         }
