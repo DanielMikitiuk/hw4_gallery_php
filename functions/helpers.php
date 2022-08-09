@@ -56,28 +56,35 @@ function translit($st)
     return $st;
 }
 
+function getExtension($filename) {
+    $path_info = pathinfo($filename);
+    return $path_info['extension'];
+}
+
 function watermark($file, $watermark) {
 
         if(empty($file) | empty($watermark)) return false;
 
-        $wh = getimagesize($watermark);
-        $fh = getimagesize($file);
+        if(getExtension($file) == "jpeg" || getExtension($file) == "jpg"){
+            $wh = getimagesize($watermark);
+            $fh = getimagesize($file);
 
-        $rwatermark = imagecreatefrompng($watermark);
+            $rwatermark = imagecreatefrompng($watermark);
+
+            $rfile = imagecreatefromjpeg($file);
+
+            imagecopy($rfile, $rwatermark, $fh[0] - $wh[0], $fh[1] - $wh[1], 0, 0, $wh[0], $wh[1]);
+
+            imagejpeg($rfile, $file, '80');
+
+            imagedestroy($rwatermark);
+            imagedestroy($rfile);
+
+            return true;
+        }
 
 
-
-        $rfile = imagecreatefromjpeg($file);
-
-
-        imagecopy($rfile, $rwatermark, $fh[0] - $wh[0], $fh[1] - $wh[1], 0, 0, $wh[0], $wh[1]);
-
-        imagejpeg($rfile, $file, '80');
-
-        imagedestroy($rwatermark);
-        imagedestroy($rfile);
-
-        return true;
+        return false;
 
 }
 
