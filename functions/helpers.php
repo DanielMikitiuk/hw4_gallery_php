@@ -55,3 +55,29 @@ function translit($st)
     $st = preg_replace("/_{2,}/", "_", $st);
     return $st;
 }
+
+function watermark($file, $watermark) {
+
+        if(empty($file) | empty($watermark)) return false;
+
+        $wh = getimagesize($watermark);
+        $fh = getimagesize($file);
+
+        $rwatermark = imagecreatefrompng($watermark);
+
+
+
+        $rfile = imagecreatefromjpeg($file);
+
+
+        imagecopy($rfile, $rwatermark, $fh[0] - $wh[0], $fh[1] - $wh[1], 0, 0, $wh[0], $wh[1]);
+
+        imagejpeg($rfile, $file, '80');
+
+        imagedestroy($rwatermark);
+        imagedestroy($rfile);
+
+        return true;
+
+}
+

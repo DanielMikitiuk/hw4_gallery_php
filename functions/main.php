@@ -1,6 +1,7 @@
 <?php
 require_once './functions/Message.php';
 require_once './functions/helpers.php';
+require_once './functions/ImageResize.php';
 session_start();
 
 $action = $_POST['action'] ?? null;
@@ -93,6 +94,7 @@ function deleteDirective(){
 function uploadMkdir(){
     $folderUploads = 'uploads/';
     $folderGallery = 'uploads/gallery/';
+    $error = 0;
 
     if(!file_exists($folderUploads)){
         mkdir('uploads');
@@ -102,10 +104,14 @@ function uploadMkdir(){
     }
 
     $mkdirName = $_POST['newMkdir'] ?? null;
-    $mkdirName = str_replace(" ", "-", $mkdirName);
+    $mkdirName = str_replace(" ", "-", $mkdirName);//что б не было пробелов при создании
+
     if(!file_exists('./uploads/gallery/'.$mkdirName)){
         mkdir('./uploads/gallery/'.$mkdirName);
+        mkdir('./uploads/gallery/'.$mkdirName.'/small_img');
     }
+
+
     if($error != 0){
         Message::set('Error','danger');
         redirect('upload-image');
@@ -130,7 +136,7 @@ function uploadImage(){
         redirect('upload-image');
     }
 
-    $name = time() . '_' . translit($name);
+    $name = translit($name);
 
     $folderUploads = 'uploads/';
     $folderGallery = 'uploads/gallery/';
@@ -143,10 +149,25 @@ function uploadImage(){
     }
 
 
-    if(!move_uploaded_file($tmp_name,'./'.$folderGallery.'/'. $dir.'/'. $name)){
+    if(!move_uploaded_file($tmp_name,'./'.$folderGallery.'/'.$dir.'/'.$name)){
         Message::set('Error','danger');
         redirect('upload-image');
     }
+
+
+
+    $img = new ImageResize('./'.$folderGallery.'/'.$dir.'/'. $name);
+    $img->resize(300,300);
+    $img->save();
+
+    $newfile = './'.$folderGallery.'/'.$dir.'/'. $name;
+
+
+    $watermark = 'watermark/watermark.png';
+
+    watermark($newfile, $watermark);
+
+
     Message::set('File is upload');
     redirect('upload-image');
 }
