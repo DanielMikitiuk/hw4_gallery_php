@@ -10,51 +10,96 @@ if (!empty($action) && function_exists($action)) {
 }
 
 function sendReg(){
-    $email = clear($_POST['regEmail'] ?? null);
-    $password = clear($_POST['regPassword'] ?? null);
-    $login = clear($_POST['regLogin'] ?? null);
+    $regLogin = clear($_POST['regLogin'] ?? '');
+    $regEmail = clear($_POST['regEmail'] ?? '');
+    $regPassword = clear($_POST['regPassword'] ?? '');
+    $path = 'Database/users.txt';
 
 
-
-    $errors = [];
-    if(empty($login)){
-        $errors['login'] = 'Login is required';
-    }
-    if(empty($email)){
-        $errors['email'] = 'Email is required';
-    }
-
-    if(empty($password)){
-        $errors['password'] = 'Password is required';
+    if (!$regLogin || !$regEmail || !$regPassword) {
+        Message::set('All fields are required', 'danger');
+        redirect('registration');
     }
 
 
-    if (count($errors) > 0) {
-        Message::set($errors, 'danger');
-    } else {
-        Message::set('Thank!');
+    $users = [];
+    if (file_exists($path)) {
+        $users = json_decode(file_get_contents($path));
     }
-    redirect('registration');
+
+    $f = fopen($path, 'w');
+
+    $toAdd = true;
+    foreach ($users as $user) {
+        if($user[0] == $regLogin) {
+            Message::set('another user has the same login', 'danger');
+            $toAdd = false;
+            break;
+        }else if($user[1] == $regEmail){
+            Message::set('another user has the same email', 'danger');
+            $toAdd = false;
+            break;
+        }
+    }
+
+    if($toAdd){
+        $users[] = [$regLogin, $regEmail, md5($regPassword)];
+        Message::set('Thank');
+        $_SESSION['user'] = $regLogin;
+    }
+
+    fwrite($f, json_encode($users));
+    fclose($f);
+
+
+
+    redirect('home');
+}
+
+function leave(){
+    unset($_SESSION['user']);
+    redirect('home');
 }
 
 function sendLogin(){
-    $email = clear($_POST['loginEmail'] ?? null);
-    $password = clear($_POST['loginPassword'] ?? null);
+    $EmailOrLogin = clear($_POST['loginEmail'] ?? '');
+    $password = clear($_POST['loginPassword'] ?? '');
+    $path = 'Database/users.txt';
 
-    $errors = [];
-    if(empty($email)){
-        $errors['email'] = 'Email is required';
+
+    if (!$EmailOrLogin || !$password) {
+        Message::set('All fields are required', 'danger');
+        redirect('login');
     }
 
-    if(empty($password)){
-        $errors['password'] = 'Password is required';
+
+    $users = [];
+    if (file_exists($path)) {
+        $users = json_decode(file_get_contents($path));
     }
 
-    if (count($errors) > 0) {
-        Message::set($errors, 'danger');
-    } else {
-        Message::set('Thank!');
+    $f = fopen($path, 'r');
+
+    $registrated = false;
+    foreach ($users as $user) {
+        if($user[0] == $EmailOrLogin || $user[1] == $EmailOrLogin) {
+            $registrated = true;
+            if ($user[2] === md5($password)) {
+                $_SESSION['user'] = $EmailOrLogin;
+                redirect('home');
+
+            } else {
+                Message::set('wrong pass', 'danger');
+            }
+            break;
+        }
     }
+
+    if(!$registrated){
+        Message::set('user not found','danger');
+    }
+    fclose($f);
+
     redirect('login');
 }
 function sendMail()

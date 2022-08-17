@@ -39,15 +39,27 @@
                     <a class="nav-link" href="index.php?page=gallery">Gallery</a>
                 </li>
         </ul>
-
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0"> <!--регистрация и логин-->
+              <ul class="navbar-nav ms-auto mb-2 mb-lg-0"> <!--регистрация и логин-->
+                  <?php if(!isset($_SESSION['user'])):?>
             <li class="nav-item" >
                 <a class="nav-link"  href="index.php?page=login">Login</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="index.php?page=registration">Registration</a>
             </li>
+                  <?php else:?>
+                      <li class="nav-item" >
+                          <form method="POST"?>
+                              <button class="nav-link" name="action" value="leave">Leave</button>
+                          </form>
+                      </li>
+                  <?php endif;?>
         </ul>
+
+
+
+
+
 
 
       </div>
